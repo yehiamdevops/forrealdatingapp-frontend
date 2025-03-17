@@ -7,14 +7,13 @@ import java.util.Map;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
-import io.github.cdimascio.dotenv.Dotenv;
 
 public class CloudinaryUtils {
   
     public static String Upload(File file) {
         try {
-            Dotenv dotenv = Dotenv.load();
-            Cloudinary cloudinary = new Cloudinary(dotenv.get("CLOUDINARY_URL"));
+            
+            Cloudinary cloudinary = new Cloudinary(System.getenv("CLOUDINARY_URL"));
             Map params = ObjectUtils.asMap(
                     "overwrite", true,
                     "resource_type", "image"

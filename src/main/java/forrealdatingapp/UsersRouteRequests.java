@@ -19,7 +19,6 @@ import java.util.Queue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.cdimascio.dotenv.Dotenv;
 
 public class UsersRouteRequests {
 
@@ -31,8 +30,7 @@ public class UsersRouteRequests {
        String json = objectMapper.writeValueAsString(user);
      * 
      */
-    public static final Dotenv env = Dotenv.load();
-    private static final String HOST = env.get("HOST");
+    private static final String HOST = System.getenv("EXPRESS_HOST");
     private static final ObjectMapper om = new ObjectMapper();
     public static final TokenManager tm = new TokenManager();
 
