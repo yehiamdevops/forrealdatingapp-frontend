@@ -38,7 +38,7 @@ launch4j {
     jarTask = project.tasks.jar
     bundledJrePath = 'jre'
     // Only needed if using custom dependencies
-    dontWrapJar = true 
+    // dontWrapJar = true 
     outputDir = launch4jOutputDir
 }
 tasks.register('zipLaunch4j', Zip) {
