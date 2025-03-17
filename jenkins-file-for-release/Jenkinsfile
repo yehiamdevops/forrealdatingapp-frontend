@@ -1,0 +1,108 @@
+pipeline {
+    agent {
+        label 'unix'
+    }
+
+
+
+    stages {
+        // Stage 1: Checkout code from SCM (Git)
+
+        stage('Checkout') {
+            steps {
+                checkout scm // Checkout code from the configured SCM (e.g., Git)
+             
+            }
+            
+        }
+        
+        //  Build the application using Gradle
+        stage('Build') {
+            steps {
+                script {
+                        sh 'chmod +x gradlew'
+                        sh './gradlew clean build' // Use 'sh' for Linux/macOS
+                
+                }
+            }
+        }
+
+        // Stage 3: Create EXE file
+        stage('Create EXE') {
+            steps {
+                script {
+                    
+                    sh 'chmod +x gradlew'
+                    sh './gradlew createExe' // Use 'sh' for Linux/macOS
+                   
+                }
+            }
+        }
+
+        // Stage 4: Create ZIP file
+        stage('Create Zip') {
+            steps {
+                script {
+                        sh 'chmod +x gradlew'
+                        sh './gradlew zipLaunch4j' // Use 'sh' for Linux/macOS
+                
+                }
+            }
+        }
+
+    
+
+        
+
+        // Stage 5: Publish GitHub Release
+        stage('Publish GitHub Release') {
+            steps {
+                script {
+                    // Reuse the same ZIP file path 
+                    
+                    def zipFilePath = "${WORKSPACE}/build/distributions/forrealdatingapp.zip"
+                        
+
+                    // Log the file path being used
+                    echo "Attempting to upload file: ${zipFilePath}"
+
+
+                    // Create release notes file
+                    writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER} - Built by Jenkins"
+                    // Create GitHub release
+                    createGitHubRelease(
+                        credentialId: 'github-token',
+                        repository: 'yehiamdevops/my-front-end',
+                        tag: "v${env.BUILD_NUMBER}",
+                        commitish: 'main',
+                        bodyFile: 'release-notes.md',
+                        draft: false
+                    )
+
+                    // Upload ZIP asset
+                    uploadGithubReleaseAsset(
+                        credentialId: 'github-token',
+                        repository: 'yehiamdevops/my-front-end',
+                        tagName: "v${env.BUILD_NUMBER}",
+                        uploadAssets: [
+                            [filePath: zipFilePath]
+                        ]
+                    )
+                }
+            }
+        }
+
+    }
+
+    post {
+        // Actions to perform after the pipeline completes
+        success {
+            echo 'Pipeline succeeded! 🎉'
+            // Notify the team (e.g., via email, Slack, etc.)
+        }
+        failure {
+            echo 'Pipeline failed! 😢'
+            // Notify the team (e.g., via email, Slack, etc.)
+        }
+    }
+}
