@@ -18,11 +18,11 @@ javafx {
     version = "23.0.2"
     modules = [ 'javafx.base','javafx.controls', 'javafx.graphics','javafx.swing' ]
 }
-mainClassName = 'hellofx.App'
+mainClassName = 'forrealdatingapp.App'
 
 jar {
     manifest {
-        attributes 'Main-Class': 'hellofx.Launcher'
+        attributes 'Main-Class': 'forrealdatingapp.Launcher'
     }
     duplicatesStrategy = 'exclude'
     from {
