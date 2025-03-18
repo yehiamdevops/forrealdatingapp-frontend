@@ -101,6 +101,15 @@ pipeline {
                 }
             }
         }
+           stage('Clean Workspace') {
+            steps {
+                script {
+                        sh 'chmod +x gradlew'
+                        sh './gradlew clean' // Use 'sh' for Linux/macOS
+                
+                }
+            }
+        }
 
     }
 
