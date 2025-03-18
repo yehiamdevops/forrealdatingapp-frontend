@@ -26,6 +26,16 @@ pipeline {
                 }
             }
         }
+        stage('Download Jre') {
+            steps {
+                script {
+                    
+                    sh 'chmod +x gradlew'
+                    sh './gradlew downloadJre' // Use 'sh' for Linux/macOS
+                   
+                }
+            }
+        }
 
         // Stage 3: Create EXE file
         stage('Create EXE') {

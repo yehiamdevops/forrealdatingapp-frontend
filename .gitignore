@@ -6,4 +6,5 @@ build
 .vscode
 bin
 .env
+jre
 
