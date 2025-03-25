@@ -20,6 +20,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
+                        
                         sh 'chmod +x gradlew'
                         sh './gradlew clean build' // Use 'sh' for Linux/macOS
                 
@@ -29,6 +30,10 @@ pipeline {
         stage('Adding Runtime') {
             steps {
                 script {
+                    sh """
+                        sudo chown -R jenkins:jenkins /var/jenkins_home/workspace/for-release-datingapp
+                        sudo chmod -R 755 /var/jenkins_home/workspace/for-release-datingapp
+                        """
                     
                     sh 'chmod +x gradlew'
                     sh './gradlew downloadJre' // Use 'sh' for Linux/macOS
