@@ -68,36 +68,20 @@ pipeline {
         stage('Publish GitHub Release') {
             steps {
                 script {
-                    // Reuse the same ZIP file path 
-                    
                     def zipFilePath = "${WORKSPACE}/build/distributions/forrealdatingapp.zip"
-                        
+                    echo "Uploading: ${zipFilePath}"
 
-                    // Log the file path being used
-                    echo "Attempting to upload file: ${zipFilePath}"
-
-
-                    // Create release notes file
                     writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER} - Built by Jenkins"
-                    // Create GitHub release
-                    createGitHubRelease(
-                        credentialId: 'github-token',
-                        repository: 'yehiamdevops/my-front-end',
-                        tag: "v${env.BUILD_NUMBER}",
-                        commitish: 'main',
-                        bodyFile: 'release-notes.md',
-                        draft: false
-                    )
 
-                    // Upload ZIP asset
-                    uploadGithubReleaseAsset(
-                        credentialId: 'github-token',
-                        repository: 'yehiamdevops/my-front-end',
-                        tagName: "v${env.BUILD_NUMBER}",
-                        uploadAssets: [
-                            [filePath: zipFilePath]
-                        ]
-                    )
+                    withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                        sh """
+                        gh release create v${env.BUILD_NUMBER} \
+                            --title "Release ${env.BUILD_NUMBER}" \
+                            --notes-file release-notes.md \
+                            --repo yehiamdevops/my-front-end \
+                            ${zipFilePath}
+                        """
+                    }
                 }
             }
         }
