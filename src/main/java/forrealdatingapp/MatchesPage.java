@@ -31,6 +31,14 @@ public class MatchesPage {
     private static ChatZone chatZone;
     private static ListView<HBox> matchesListView;
     private static Map<String, HBox> matchBoxMap = new HashMap<>();
+    private static Map<String, Label> statusMap = new HashMap<>();
+    public static Map<String, Label> lastMessageMap = new HashMap<>();
+    public static Map<String, Label> MessageCounterMap = new HashMap<>();
+    private static Label statusLabel;
+    
+    private static String paginationType = "";
+    
+
 
     void showMatchesPage(Stage stage,String _id) throws IOException {
         // Create a back button to return to the main page
@@ -39,7 +47,7 @@ public class MatchesPage {
             MainPage mainPage = new MainPage();
             mainPage.showMainPage(stage,_id);
         });
-
+        
         // Create a list of matches (for demonstration purposes)
         
         // Create a ListView to display matches
@@ -68,6 +76,7 @@ public class MatchesPage {
                 }
             }
             else{
+                paginationType = "";
                 pagination.setCurrentPageIndex(pageIndex);
                 return new Label("no more matches!!!");
             }
@@ -88,11 +97,17 @@ public class MatchesPage {
         stage.setScene(scene);
         stage.setTitle("Matches");
         stage.show();
+        ChatZone.writer.println("Broadcast|" + _id);
+
     }
 
     // Helper method to create a match box (HBox) for each match
 private HBox createMatchBox(Match match,Stage stage,String _id) throws IOException, URISyntaxException {
     // Create an ImageView for the profile picture
+    if(!statusMap.containsKey(match.getId())){
+        statusLabel = new Label();
+        statusMap.put(match.getId(),statusLabel);
+    }
     Node imageOrLabel;
     ImageView profilePicture = new ImageView();
     profilePicture.setFitWidth(50);  // Set the width of the image
@@ -117,15 +132,19 @@ private HBox createMatchBox(Match match,Stage stage,String _id) throws IOExcepti
     nameLabel.setTextFill(Color.DARKBLUE);
 
     // Last message
-    Label lastMessageLabel = new Label(match.getLastMessage());
+    Label lastMessageLabel = new Label();
+    if (!lastMessageMap.containsKey(match.getId())) {
+
+        lastMessageMap.put(match.getId(), lastMessageLabel);
+        
+    }
     lastMessageLabel.setFont(Font.font(14));
     lastMessageLabel.setTextFill(Color.GRAY);
-
     // Layout for match details
     HBox matchBox = new HBox(10);
-    matchBoxMap.put(match._id, matchBox);
+    
     VBox matchDetails = new VBox(5);
-    matchDetails.getChildren().addAll(nameLabel, lastMessageLabel);
+    matchDetails.getChildren().addAll(nameLabel, lastMessageMap.get(match.getId()));
     Button unmatchButton = new Button("Unmatch");
     unmatchButton.setTextFill(Color.RED);
     unmatchButton.setStyle("-fx-background-color: transparent; -fx-border-color: red;");
@@ -159,21 +178,32 @@ showProfile.setOnAction(e -> {
 
 });
 
+
+Label messageCounter = new Label();
+MessageCounterMap.put(match.getId(), messageCounter);
 Region spacer = new Region();
 HBox.setHgrow(spacer, Priority.ALWAYS);
+if(ChatZone.messageCounters.get(match.getId()) != null){
 
+    int msgCnt = ChatZone.messageCounters.get(match.getId());
+    if(msgCnt > 0){
+        messageCounter.setText("you have " + msgCnt + " messages unread");
+    
+    }
+}
+messageCounter.setTextFill(Color.BLUE);
     // Container for the match
     matchBox.setAlignment(Pos.CENTER_LEFT);
     matchBox.setPadding(new Insets(10));
     matchBox.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1px; -fx-border-radius: 5px;");
-    matchBox.getChildren().addAll(imageOrLabel, matchDetails,spacer, showProfile,unmatchButton); // Add the profile picture and match details
+    matchBox.getChildren().addAll(imageOrLabel, matchDetails,messageCounter,spacer,statusMap.get(match.getId()), showProfile,unmatchButton); // Add the profile picture and match details
     matchBox.setOnMouseClicked((mouseEvent) -> {
         System.out.println(match.getId());
         if (chatZone == null)
             chatZone = new ChatZone();
-        chatZone.showChatZone(stage, match.getId(),_id);
-        /*here i need guidance cause in the chat zone stage there a socket talk 
-         */
+        chatZone.showChatZone(stage, match,_id);
+        ChatZone.inChatZoneScreen = true;
+        
         
     });
     return matchBox;
@@ -181,33 +211,42 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
 
     // Mock data for matches (replace with real data from your app)
     private List<Match> getMatches(String _id, int index) {
-        List<Match> matches = new ArrayList<>();
-        List<User> matchesList = UsersRouteRequests.getMatches(Integer.toString(index) , _id);
-        if (matchesList != null ){
-            for (User elem : matchesList) {
-                matches.add(new Match(elem.get_id(),elem.getFirstName(), elem.getBio(), elem.getProfilePicture()));
+       
+            List<Match> matches = new ArrayList<>();
+            
+            List<User> matchesList = UsersRouteRequests.getMatches(Integer.toString(index) , _id);
+            if (matchesList != null ){
+                for (User elem : matchesList) {
+                    matches.add(new Match(elem.get_id(),elem.getUsername(), elem.getProfilePicture()));
+                    
+                }
                 
             }
-            
-        }
+          
+        
+      
    
         return matches;
     }
 
     // Inner class to represent a match
-    private static class Match {
+    public static class Match {
         private final String _id;
         private final String name;
-        private final String lastMessage;
         private final String profilePictureUrl; // Add this field
+        // private final Label status = new Label();
     
-        public Match(String _id,String name, String lastMessage, String profilePictureUrl) {
+        public Match(String _id,String name, String profilePictureUrl) {
             this._id = _id;
             this.name = name;
-            this.lastMessage = lastMessage;
             this.profilePictureUrl = profilePictureUrl;
+            
         }
     
+        // public Label getStatus() {
+        //     return status;
+        // }
+
         public String getId() {
             return _id;
         }
@@ -215,9 +254,7 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
             return name;
         }
     
-        public String getLastMessage() {
-            return lastMessage;
-        }
+    
     
         public String getProfilePictureUrl() {
             return profilePictureUrl;
@@ -228,6 +265,55 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
         Platform.runLater(()->{
             matchesListView.getItems().remove(matchBoxMap.get(id));
         });
-        
+    }
+    static void setUserStatus(String id,String Type){
+        // System.out.println(statusMap);
+        // System.out.println(id);
+        if(statusMap != null && !statusMap.isEmpty()){
+
+            if(Type.equals("online")){
+                Platform.runLater(()->{
+                    statusMap.get(id).setText("online");
+                    statusMap.get(id).setTextFill(Color.GREEN);
+                });
+    
+                
+                
+    
+            }
+            else{
+                Platform.runLater(()->{
+                    statusMap.get(id).setText("offline");
+                    statusMap.get(id).setTextFill(Color.RED);
+                });
+    
+                
+    
+                
+            }
+        }
+        else{
+            statusLabel = new Label();
+            statusLabel.setText(Type);
+            statusLabel.setTextFill(Color.RED);
+            statusMap.put(id, statusLabel);
+        }
+    }
+    static void showLastMessage(String usernameID, String content,String username){
+        if (lastMessageMap != null && !lastMessageMap.isEmpty()) {   
+              
+            Platform.runLater(()->{
+                lastMessageMap.get(usernameID).setText(username + ": " + content);
+            });
+        }
+        if(ChatZone.messageCounters.get(usernameID) != null){
+
+            int msgCnt = ChatZone.messageCounters.get(usernameID);
+            Platform.runLater(()->{
+                MessageCounterMap.get(usernameID).setText("you have " + msgCnt + " messages unread");
+            });
+            
+        }
+
     }
 }

@@ -19,6 +19,7 @@ import java.util.Queue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class UsersRouteRequests {
 
@@ -30,7 +31,8 @@ public class UsersRouteRequests {
        String json = objectMapper.writeValueAsString(user);
      * 
      */
-    private static final String HOST = System.getenv("EXPRESS_HOST");
+    
+    private static final String HOST = App.getEnv("EXPRESS_HOST", "EXPRESS_HOST");
     private static final ObjectMapper om = new ObjectMapper();
     public static final TokenManager tm = new TokenManager();
 
@@ -445,8 +447,8 @@ public static List<Map<String, Object>> FetchMessages(String userId, String matc
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
                 HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
-                System.out.println("response code: "+ response.statusCode());
-                System.out.println("response Body: " + response.body());
+                // System.out.println("response code: "+ response.statusCode());
+                // System.out.println("response Body: " + response.body());
                 return om.readValue(response.body(), new TypeReference<List<Map<String, Object>>>(){});
             } catch (IOException | InterruptedException e) {
                 System.out.println(e.getLocalizedMessage());

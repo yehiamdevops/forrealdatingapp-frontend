@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.cloudinary.Cloudinary;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -486,13 +485,15 @@ public class ProfilePage {
     private void initializePictureGrid(List<String> picturePaths) {
         pictureGrid.getChildren().clear(); // Clear existing grid content
         if (picturePaths != null && !picturePaths.isEmpty()) {
-            System.out.println("test pic paths: \n"+picturePaths);
+            // System.out.println("test pic paths: \n"+picturePaths);
             int col = 0, row = 0;
             for (String picturePath : picturePaths) {
                 try {
                     
                     // Image image = ImageUtils.loadCorrectedImage(file); // Load image from the path
-                    ImageView imageView = new ImageView(picturePath);
+                    Image img = ImageUtils.loadCorrectedImage(picturePath);
+                    ImageView imageView = new ImageView();
+                    imageView.setImage(img);
                     imageView.setFitHeight(150);
                     imageView.setFitWidth(150);
                     imageView.setPreserveRatio(true);

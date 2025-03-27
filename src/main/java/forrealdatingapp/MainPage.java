@@ -196,9 +196,8 @@ private static Queue<User> users;
             }
         });
         matchesButton.setOnAction((actionEvent) -> {
-            MatchesPage matchesPage = new MatchesPage();
             try {
-                matchesPage.showMatchesPage(stage, _id);
+                App.matchesPage.showMatchesPage(stage, _id);
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -218,7 +217,7 @@ private static Queue<User> users;
             stage.setWidth(500);
             stage.setHeight(600);
             ChatZone.chatArea = null;
-            App.isMessagesFetched = false;
+            ChatZone.isMessagesFetched.clear();
             LoginWindow loginWindow = new LoginWindow();
             loginWindow.showLoginWindow(stage,null);
             ChatZone.closeConnection();
@@ -240,6 +239,8 @@ private static Queue<User> users;
         stage.setWidth(900);
         stage.setTitle("Main Page");
         stage.show();
+        ChatZone.writer.println("Broadcast|" + _id);
+
     }
     
 

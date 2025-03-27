@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -20,6 +22,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 
 public class ChatZone {
@@ -28,28 +31,39 @@ public class ChatZone {
     private static TextField messageInput; // User input
     private HBox inputBox;
     private static Text alertMessage;
-    private Button sendButton; // Send button
-    public static Socket socket;
-    public static BufferedReader reader;
-    public static PrintWriter writer;
-    private static String userId;
-    private String matchId;
-    private static  String finalMessage;
-    private static  String finalstr;
-    public static Thread listenerThread;
-    
-        public void showChatZone(Stage stage, String matchId, String _userId) {
-            this.matchId = matchId;
+        private Button sendButton; // Send button
+        public static Socket socket;
+        public static BufferedReader reader;
+        public static PrintWriter writer;
+        private static String userId;
+        private static  String matchId;
+        public static boolean inChatZoneScreen = false;
+        private static  String finalMessage;
+        private static  String finalstr;
+        public static Thread listenerThread;
+        public static Map<String, Integer> messageCounters = new HashMap<>();
+        public static Map <String, Boolean> isMessagesFetched = new HashMap<>();
+        public static Map <String, TextArea> MessagesMap = new HashMap<>();
+        // public static Map <String, Text> alertMessagesMap = new HashMap<>();
+        private static PauseTransition typingPause;
+        private static boolean isTyping = false;
+        private final static Duration TYPING_DELAY = Duration.seconds(1); // 1 second pause
+                                
+                                    
+        public void showChatZone(Stage stage, MatchesPage.Match match, String _userId) {
+            messageCounters.put(matchId, 0);
+            matchId = match.getId();
             userId = _userId;
+            // messageCounters.get(matchId) 
             
             // UI Components
-            if (chatArea == null){
-                chatArea = new TextArea();
-                chatArea.setEditable(false);
-                chatArea.setWrapText(true);
-            }
-            if(!App.isMessagesFetched){
-            System.out.println(userId);
+            
+            chatArea = new TextArea();
+            chatArea.setEditable(false);
+            chatArea.setWrapText(true);
+            
+            if(isMessagesFetched.get(matchId) == null){
+            // System.out.println(userId);
             // System.out.println(matchId);
             List<Map<String, Object>> messages = UsersRouteRequests.FetchMessages(userId, matchId);
             if(messages != null){
@@ -64,20 +78,31 @@ public class ChatZone {
                     else{
                         sender = content;
                     }
-
+    
                     chatContent.append(sender).append("|").append((String)message.get("message")).append("\n");
                 }
                 chatArea.setText(chatContent.toString());
-                App.isMessagesFetched = true;
-
+                isMessagesFetched.put(matchId, true);
+    
             }
-
-
-        }
+            
+    
+    
+            }
+            else{
+                chatArea = MessagesMap.get(matchId);
+    
+            }
+    
     
             messageInput = new TextField();
-            sendButton = new Button("Send");
+            setupTypingDetection();
     
+            sendButton = new Button("Send");
+            // messageInput.setOnKeyPressed((event) ->{
+            //     System.out.println("textfield");
+            //     writer.println("Typing|" + matchId);
+            // } );
             // Handle sending messages
             sendButton.setOnAction(e -> {
                 try {
@@ -87,11 +112,11 @@ public class ChatZone {
                     e1.printStackTrace();
                 }
             });
-
-            if (alertMessage == null) {
-                
-                alertMessage = new Text();
-            }
+    
+       
+            alertMessage = new Text();
+            // alertMessagesMap.put(match.getId(), alertMessage);//map know how to handle initializition of different object and help manage them
+            
             alertMessage.setText(null);
             // Layout
             inputBox = new HBox(10, messageInput, sendButton, alertMessage);
@@ -99,9 +124,14 @@ public class ChatZone {
     
             Button backToMainScreen = new Button("back to main screen");
             backToMainScreen.setOnAction((actionEvent) -> {
-             
+                MessagesMap.put(matchId, chatArea);
+                inChatZoneScreen = false;
+                messageCounters.put(matchId, 0);
+                MatchesPage.MessageCounterMap.get(match.getId()).setText(null);
                 MainPage mp = new MainPage();
                 mp.showMainPage(stage, _userId);
+    
+                
             });
             BorderPane layout = new BorderPane();
             layout.setCenter(chatArea);
@@ -127,17 +157,19 @@ public class ChatZone {
         }
     
         public static void connectToServer() {
+            String socket_host = App.getEnv("SOCKET_HOST","SOCKET_HOST");
+            int socket_port = Integer.parseInt(App.getEnv("SOCKET_PORT","SOCKET_PORT"));
             try {
                 if (socket == null ||socket.isClosed()) {
                     
-                    socket = new Socket(System.getenv("SOCKET_HOST"),Integer.parseInt(System.getenv("SOCKET_PORT")) ); // Replace with actual server details
+                    socket = new Socket(socket_host, socket_port); // Replace with actual server details
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     writer = new PrintWriter(socket.getOutputStream(), true);
                     
                 }
                 // Start a thread to listen for incoming messages
-                 
-                 if (listenerThread == null || !listenerThread.isAlive()) {
+                    
+                    if (listenerThread == null || !listenerThread.isAlive()) {
                     listenerThread = new Thread(ChatZone::listenForMessages);
                     listenerThread.setDaemon(true); // Optional: ensures it stops when the app closes
                     listenerThread.start();
@@ -158,69 +190,49 @@ public class ChatZone {
                 while ((message = reader.readLine()) != null) {
                     finalMessage = message; // Effectively final
                     System.out.println(finalMessage);
-                    // if (finalMessage.contains(":append")) {
-                    //     finalstr = messageInput.getText().trim();
-                    //     chatArea.appendText("Me| "+ finalstr +"\n");
-                    //     messageInput.clear();
-                    // }
+                    handleIncomingTypingNotification(message);
+                    if (finalMessage.contains("MatchesPageStatus|")){
+                        String id = finalMessage.split("\\|")[1].trim();
+                        String type = finalMessage.split("\\|")[2].trim();
+                        // System.out.println(id + "\n" + type);
+                        MatchesPage.setUserStatus(id, type);
+                    }
                     if (finalMessage.equals("Unallowed")) {
                         System.out.println("test-unallowed");
                         LoginWindow.SocketLogin("Unallowed");
-                       
+                        
                         
                     }
                     else if(finalMessage.contains("Allowed|")){
                         LoginWindow.SocketLogin("allowed");
-
+    
                     }
                     if (finalMessage.contains("Unmatched|")){
                         String userid = finalMessage.split("userid:")[1].trim();
                         MatchesPage.cleanCurrentUnmatch(userid);
                     }
-                    if (finalMessage.contains("Error|")) {
-                        System.out.println("test-current");
-                        String errorMessage = finalMessage.split("\\|")[1]; // New variable
+                    if (finalMessage.contains("MessageRecieved|")){
+                        String username = finalMessage.split("\\|")[1];
+                        String content = finalMessage.split("\\|")[2];
+                        String usernameID = finalMessage.split("\\|")[3];
                         Platform.runLater(()->{
-                        alertMessage.setText(errorMessage);
-                        alertMessage.setFill(Color.RED);
-                        chatArea.appendText("Me|"+ messageInput.getText().trim() + "\n");
-                        messageInput.clear();
-                    });
-                       
-                    
-
-                }
-                
-
-                else{
-                        if (finalMessage.contains("online")) {
-                            Platform.runLater(() ->{ 
-                                if (alertMessage != null) {
-                                    alertMessage.setFill(Color.GREEN);
-                                    alertMessage.setText(finalMessage);
-
-                                
-                                }   
-                                
-                                chatArea.appendText("Me|"+messageInput.getText().trim() + "\n");
-                                messageInput.clear();
-                            });
-                            
-                            
-                        }
-                    else if(finalMessage.contains("approved") ){
-                    
-                        finalstr = finalMessage.split(":")[0].trim();
-                        Platform.runLater(() ->{ 
-                            chatArea.appendText(finalstr + "\n");
-                        
-                    
-                    });
-
+                            chatArea.appendText(username + "|" + content + "\n");
+    
+                        });
+                        System.out.println("inChatZoneScreen:"+inChatZoneScreen);
+                        if(!inChatZoneScreen)
+                            messageCounters.put(usernameID, messageCounters.getOrDefault(usernameID, 0) + 1);
+                        else messageCounters.remove(usernameID);
+                        MatchesPage.showLastMessage(usernameID, content,username);
+                        // if(messageCounters.get(usernameID) == null){
+                        //     messageCounters.put(usernameID, 0);
+    
+                        // }
+                        // else{
+                        //     messageCounters.put(usernameID, messageCounters.get(usernameID) + 1);
+                        // }
                     }
-                   
-                
-                }
+    
             }
             System.out.println("end-while-test");
         }
@@ -228,27 +240,94 @@ public class ChatZone {
             closeConnection();
         }
     }
-
-    private void sendMessage() throws InterruptedException {
-        String message = messageInput.getText().trim();
-        if (!message.isEmpty()) {
-            
-            writer.println("MESSAGE| input: "+ message + "| matchid:" + matchId );
-
-            
-            // if(finalMessage.contains("online")){
-            // writer.println("MESSAGE| "  + userId + "input:" + message + "| matchid:" + matchId );
-            // // chatArea.appendText("Me| " + message + "\n");
-            // messageInput.clear();
-            
-            
-            // }
-            // else {
-            //     writer.println("MESSAGE| "  + userId + "input:" + message + "| matchid:" + matchId );
-              
-            // }
-
+    
+        private void sendMessage() throws InterruptedException {
+            String message = messageInput.getText().trim();
+            chatArea.appendText("Me|" + message + "\n");
+            if(MatchesPage.lastMessageMap.get(matchId) != null){
+                MatchesPage.lastMessageMap.get(matchId).setText("me: " + message);
+            }
+            messageInput.clear();
+            if (!message.isEmpty()) {
+                
+                writer.println("MESSAGE| input: "+ message + "| matchid:" + matchId);
+                
+    
+            }
         }
+        
+        
+                                
+        private static void setupTypingDetection() {
+                typingPause = new PauseTransition(TYPING_DELAY);
+                typingPause.setOnFinished(e -> {
+                if (isTyping) {
+                    isTyping = false;
+                    writer.println("StoppedTyping|" + matchId + "|" + userId);
+                }
+                });
+            
+                
+                messageInput.textProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!isTyping && !newVal.isEmpty()) {
+                        // User started typing
+                        isTyping = true;
+                        writer.println("Typing|" + matchId + "|" + userId);
+                    }
+            
+                    // Reset the timer on each keystroke
+                    typingPause.playFromStart();
+            
+                    if (newVal.isEmpty()) {
+                    // Field cleared - stopped typing
+                        isTyping = false;
+                        writer.println("StoppedTyping|" + matchId + "|" + userId);
+                        typingPause.stop();
+                    }
+                });
+           
+        }
+        public static void handleIncomingTypingNotification(String message) {
+                if (message.contains("Typing") && !message.contains("MessageRecieved|")) {
+
+                    
+                    String[] parts = message.split("\\|");
+                    String type = parts[0];
+                    String senderName = parts[1];
+                    String senderID = parts[2];
+                    if (matchId != null && matchId.equals(senderID)) {
+                        
+                        Platform.runLater(() -> {
+                            if (type.equals("Typing")) {
+                                alertMessage.setText(senderName + " is typing...");
+                                alertMessage.setFill(Color.GRAY);
+                              
+                            } else if (type.equals("StoppedTyping")) {
+                                alertMessage.setText(""); // Clear the indicator
+                            
+                            }
+                        });
+                    }
+                    else{
+                        Platform.runLater(()->{
+                            if (alertMessage !=null) {
+                                alertMessage.setText(""); // Clear the indicator
+                                
+                            }
+                        });
+                    }
+                    if (!inChatZoneScreen && type.equals("Typing")) {
+                        Platform.runLater(()-> MatchesPage.lastMessageMap.get(senderID).setText(senderName + " is typing..."));
+                        
+                        
+                    }
+                    else{
+                        Platform.runLater(()-> MatchesPage.lastMessageMap.get(senderID).setText(""));
+                        
+                    }
+
+                }
+        
     }
 
     public static void closeConnection() {

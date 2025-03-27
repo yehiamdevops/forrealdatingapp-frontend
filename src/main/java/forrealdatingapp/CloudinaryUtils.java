@@ -7,13 +7,12 @@ import java.util.Map;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
-
 public class CloudinaryUtils {
   
     public static String Upload(File file) {
         try {
-            
-            Cloudinary cloudinary = new Cloudinary(System.getenv("CLOUDINARY_URL"));
+            String CLOUDINARY_URL = App.getEnv("CLOUDINARY_URL", "CLOUDINARY_URL");
+            Cloudinary cloudinary = new Cloudinary(CLOUDINARY_URL);
             Map params = ObjectUtils.asMap(
                     "overwrite", true,
                     "resource_type", "image"

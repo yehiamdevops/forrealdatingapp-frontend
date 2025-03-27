@@ -2,6 +2,7 @@ package forrealdatingapp;
 
 import java.io.IOException;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -9,10 +10,12 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class App extends Application{
+    
     static LoginWindow loginWindow = new LoginWindow();
+    static MatchesPage matchesPage = new MatchesPage();
+    
     String token_id;
     static boolean isTokenOnline = false;
-    public static boolean isMessagesFetched;
     @Override
     public void start(Stage primaryStage) throws IOException{
        
@@ -40,6 +43,31 @@ public class App extends Application{
 
 
     }
+    public static String getEnv(String key, String defaultValue) {
+        String value = "";
+        try {
+            Dotenv env = Dotenv.load();
+            value = env.get(key);
+            
+        } catch (Exception e) {
+            value = System.getenv(key);
+         }
+        // Try to get value from dotenv
+        
+        // Check if value is null, fallback to system environment
+        if (value.isEmpty()) {
+            value = System.getenv(key);
+        }
+        
+        // If still null, return default value
+        if (value.isEmpty()) {
+            value = defaultValue;
+        }
+        System.out.println(value);
+        
+        return value;
+    }
+    
     
     public static void main(String[] args) throws Exception {
         // // delete later
