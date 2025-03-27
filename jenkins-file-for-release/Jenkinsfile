@@ -78,7 +78,7 @@ pipeline {
                 script {
                     // Reuse the same ZIP file path 
                     
-                    def zipFilePath = '${WORKSPACE}build/distributions/forrealdatingapp.zip'
+                    def zipFilePath = '${WORKSPACE}/build/distributions/forrealdatingapp.zip'
                         
 
                     // Log the file path being used
