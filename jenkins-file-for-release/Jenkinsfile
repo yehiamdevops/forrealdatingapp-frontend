@@ -82,7 +82,7 @@ pipeline {
                     // Create GitHub release
                     createGitHubRelease(
                         credentialId: 'github-token',
-                        repository: 'yehiamdevops/my-front-end',
+                        repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tag: "v${env.BUILD_NUMBER}",
                         commitish: 'main',
                         bodyFile: 'release-notes.md',
@@ -92,7 +92,7 @@ pipeline {
                     // Upload ZIP asset
                     uploadGithubReleaseAsset(
                         credentialId: 'github-token',
-                        repository: 'yehiamdevops/my-front-end',
+                        repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tagName: "v${env.BUILD_NUMBER}",
                         uploadAssets: [
                             [filePath: zipFilePath]
