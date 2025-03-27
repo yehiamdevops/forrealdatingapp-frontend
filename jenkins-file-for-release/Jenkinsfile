@@ -63,7 +63,7 @@ pipeline {
 
      stage('Archive Artifacts') {
         steps {
-        archiveArtifacts artifacts: 'build/distributions/forrealdatingapp.zip', fingerprint: true
+            archiveArtifacts artifacts: 'build/distributions/forrealdatingapp.zip', fingerprint: true
         }
     }
 
