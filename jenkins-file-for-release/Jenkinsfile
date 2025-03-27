@@ -93,8 +93,7 @@ pipeline {
                     // Upload ZIP asset
                     uploadGithubReleaseAsset(
                         credentialId: 'github-token',
-                        repository: 'yehiamdevops/forrealdatingapp-frontend
-',
+                        repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tagName: "v${env.BUILD_NUMBER}",
                         uploadAssets: [
                             [filePath: zipFilePath]
