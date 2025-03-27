@@ -82,7 +82,7 @@ pipeline {
                         
 
                     // Log the file path being used
-                    echo "Attempting to upload file: ${zipFilePath}"
+                    echo "Attempting to upload file"
 
 
                     // Create release notes file
