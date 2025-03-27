@@ -18,7 +18,10 @@ pipeline {
         stage('Set Folder Permissions') {
             steps {
                 // Replace /path/to/your/cloned/folder with the actual path
-                sh 'chmod -R 777 ${WORKSPACE}/front-release-unix'
+                script{
+                    sh 'chmod -R 777 ${WORKSPACE}/front-release-unix'
+
+                }
             }
         
         //  Build the application using Gradle
