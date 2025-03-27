@@ -103,7 +103,7 @@ pipeline {
                         repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tagName: "v${env.BUILD_NUMBER}",
                         uploadAssets: [
-                            [filePath: '${WORKSPACE}/build/distributions/forrealdatingapp.zip']
+                            [filePath: '${env.WORKSPACE}/build/distributions/forrealdatingapp.zip']
                         ]
                     )
                 }
