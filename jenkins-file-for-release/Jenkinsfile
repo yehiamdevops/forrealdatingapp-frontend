@@ -61,59 +61,60 @@ pipeline {
             }
         }
 
-     stage('Archive Artifacts') {
-        steps {
-            archiveArtifacts artifacts: 'build/distributions/forrealdatingapp.zip', fingerprint: true
-        }
-    }
+ 
 
 
         
 
         // Stage 5: Publish GitHub Release
         stage('Publish GitHub Release') {
-            steps {
-                script {
-                    // Reuse the same ZIP file path 
-                    def zipFilePath = "${env.WORKSPACE}/build/distributions/forrealdatingapp.zip"
-                    
-                    // Verify file exists before proceeding
-                    if (!fileExists(zipFilePath)) {
-                        error("File not found: ${zipFilePath}. Cannot create release.")
-                    }
-                    
-                    echo "Creating release with file: ${zipFilePath}"
-                    
+                steps {
+                    script {
+                        // Use absolute path with proper variable expansion
+                        def zipFilePath = "${env.WORKSPACE}/build/distributions/forrealdatingapp.zip"
                         
-
-                    // Log the file path being used
-                    echo "Attempting to upload file"
-
-
-                    // Create release notes file
-                    writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER} - Built by Jenkins"
-                    // Create GitHub release
-                    createGitHubRelease(
-                        credentialId: 'github-token',
-                        repository: 'yehiamdevops/forrealdatingapp-frontend',
-                        tag: "v${env.BUILD_NUMBER}",
-                        commitish: 'main',
-                        bodyFile: 'release-notes.md',
-                        draft: false
-                    )
-                  
-                    // Upload ZIP asset
-                    uploadGithubReleaseAsset(
-                        credentialId: 'github-token',
-                        repository: 'yehiamdevops/forrealdatingapp-frontend',
-                        tagName: "v${env.BUILD_NUMBER}",
-                        uploadAssets: [
-                            [filePath: zipFilePath]
-                        ]
-                    )
+                        // Debug: Print the exact path being used
+                        echo "Checking for file at: ${zipFilePath}"
+                        
+                        // Verify file exists with proper error handling
+                        if (!fileExists(zipFilePath)) {
+                            // Debug: List directory contents
+                            sh "ls -la ${env.WORKSPACE}/build/distributions/ || true"
+                            error("❌ ERROR: ZIP file not found at ${zipFilePath}. Build may have failed.")
+                        }
+                        
+                        // Debug: Show file info
+                        sh "ls -lh ${zipFilePath}"
+                        sh "file ${zipFilePath}"
+                        
+                        // Archive artifact in Jenkins first (for debugging)
+                        archiveArtifacts artifacts: 'build/distributions/*.zip', fingerprint: true
+                        
+                        // Create GitHub release
+                        writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER}"
+                        
+                        try {
+                            createGitHubRelease(
+                                credentialId: 'github-token',
+                                repository: 'yehiamdevops/forrealdatingapp-frontend',
+                                tag: "v${env.BUILD_NUMBER}",
+                                commitish: 'main',
+                                bodyFile: 'release-notes.md',
+                                draft: false
+                            )
+                            
+                            uploadGithubReleaseAsset(
+                                credentialId: 'github-token',
+                                repository: 'yehiamdevops/forrealdatingapp-frontend',
+                                tagName: "v${env.BUILD_NUMBER}",
+                                uploadAssets: [[filePath: zipFilePath]]
+                            )
+                        } catch (Exception e) {
+                            error("🚨 GitHub release failed: ${e.getMessage()}")
+                        }
+                    }
                 }
             }
-        }
            stage('Clean Workspace') {
             steps {
                 script {
