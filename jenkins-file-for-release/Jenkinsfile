@@ -60,7 +60,14 @@ pipeline {
             }
         }
 
-    
+        stage('Verify File for Upload') {
+        steps {
+            sh 'ls -l ${WORKSPACE}/build/distributions/'
+            sh 'file ${WORKSPACE}/build/distributions/forrealdatingapp.zip'
+            sh 'stat ${WORKSPACE}/build/distributions/forrealdatingapp.zip'
+        }
+    }
+
 
         
 
@@ -88,9 +95,7 @@ pipeline {
                         bodyFile: 'release-notes.md',
                         draft: false
                     )
-                    sh 'ls -l /home/yehiam/jenkins/workspace/front-release-unix/build/distributions/'
-                    sh 'echo test'
-
+                  
                     // Upload ZIP asset
                     uploadGithubReleaseAsset(
                         credentialId: 'github-token',
