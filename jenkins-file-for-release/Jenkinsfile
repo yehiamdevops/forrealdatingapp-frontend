@@ -72,7 +72,7 @@ pipeline {
                     script {
                         // Use absolute path with proper variable expansion
                         def zipFilePath = "${env.WORKSPACE}/build/distributions/forrealdatingapp.zip"
-                        
+                        sh 'chmod -R 777 ${WORKSPACE}/build/distributions'
                         // Debug: Print the exact path being used
                         echo "Checking for file at: ${zipFilePath}"
                         
