@@ -61,68 +61,52 @@ pipeline {
             }
         }
 
- 
-
+    
 
         
 
         // Stage 5: Publish GitHub Release
         stage('Publish GitHub Release') {
-                steps {
-                    script {
-                        // Use absolute path with proper variable expansion
-                        def zipFilePath = "${env.WORKSPACE}/build/distributions/forrealdatingapp.zip"
-                        sh 'chmod -R 777 ${WORKSPACE}/build/distributions'
-                        // Debug: Print the exact path being used
-                        echo "Checking for file at: ${zipFilePath}"
+            steps {
+                script {
+                    // Reuse the same ZIP file path 
+                    
+                    def zipFilePath = "${WORKSPACE}/build/distributions/forrealdatingapp.zip"
                         
-                        // Verify file exists with proper error handling
-                        if (!fileExists(zipFilePath)) {
-                            // Debug: List directory contents
-                            sh "ls -la ${env.WORKSPACE}/build/distributions/ || true"
-                            error("❌ ERROR: ZIP file not found at ${zipFilePath}. Build may have failed.")
-                        }
-                        
-                        // Debug: Show file info
-                        sh "ls -lh ${zipFilePath}"
-                        sh "file ${zipFilePath}"
-                        
-                        // Archive artifact in Jenkins first (for debugging)
-                        archiveArtifacts artifacts: 'build/distributions/*.zip', fingerprint: true
-                        
-                        // Create GitHub release
-                        writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER}"
-                        
-                        try {
-                            createGitHubRelease(
-                                credentialId: 'github-token',
-                                repository: 'yehiamdevops/forrealdatingapp-frontend',
-                                tag: "v${env.BUILD_NUMBER}",
-                                commitish: 'main',
-                                bodyFile: 'release-notes.md',
-                                draft: false
-                            )
-                            uploadGithubReleaseAsset(
-                                credentialId: 'github-token',
-                                repository: 'yehiamdevops/forrealdatingapp-frontend',
-                                tagName: "v${env.BUILD_NUMBER}",
-                                uploadAssets: [
-                                    [filePath: 'release-notes.md'], 
-                                    [filePath: zipFilePath]
-                                ]
-                            )
-                        } catch (Exception e) {
-                            error("🚨 GitHub release failed: ${e.getMessage()}")
-                        }
-                    }
+
+                    // Log the file path being used
+                    echo "Attempting to upload file: ${zipFilePath}"
+
+
+                    // Create release notes file
+                    writeFile file: 'release-notes.md', text: "Release ${env.BUILD_NUMBER} - Built by Jenkins"
+                    // Create GitHub release
+                    createGitHubRelease(
+                        credentialId: 'github-token',
+                        repository: 'yehiamdevops/my-front-end',
+                        tag: "v${env.BUILD_NUMBER}",
+                        commitish: 'main',
+                        bodyFile: 'release-notes.md',
+                        draft: false
+                    )
+
+                    // Upload ZIP asset
+                    uploadGithubReleaseAsset(
+                        credentialId: 'github-token',
+                        repository: 'yehiamdevops/my-front-end',
+                        tagName: "v${env.BUILD_NUMBER}",
+                        uploadAssets: [
+                            [filePath: zipFilePath]
+                        ]
+                    )
                 }
             }
+        }
            stage('Clean Workspace') {
             steps {
                 script {
                         sh 'chmod +x gradlew'
                         sh './gradlew clean' // Use 'sh' for Linux/macOS
-                        
                 
                 }
             }
@@ -138,7 +122,6 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed! 😢'
-          
             // Notify the team (e.g., via email, Slack, etc.)
         }
     }
