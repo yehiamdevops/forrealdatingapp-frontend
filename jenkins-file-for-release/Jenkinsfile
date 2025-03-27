@@ -15,19 +15,12 @@ pipeline {
             }
             
         }
-        stage('Set Folder Permissions') {
-            steps {
-                // Replace /path/to/your/cloned/folder with the actual path
-                script{
-                    sh 'chmod -R 777 ${WORKSPACE}/front-release-unix'
-
-                }
-            }
         
         //  Build the application using Gradle
         stage('Build') {
             steps {
                 script {
+                        sh 'chmod -R 777 ${WORKSPACE}'
                         sh 'chmod +x gradlew'
                         sh './gradlew clean build' // Use 'sh' for Linux/macOS
                 
@@ -85,7 +78,7 @@ pipeline {
                 script {
                     // Reuse the same ZIP file path 
                     
-                    def zipFilePath = "front-releade-unix/build/distributions/forrealdatingapp.zip"
+                    def zipFilePath = "build/distributions/forrealdatingapp.zip"
                         
 
                     // Log the file path being used
