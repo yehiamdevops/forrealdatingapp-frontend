@@ -102,12 +102,14 @@ pipeline {
                                 bodyFile: 'release-notes.md',
                                 draft: false
                             )
-                            
                             uploadGithubReleaseAsset(
                                 credentialId: 'github-token',
                                 repository: 'yehiamdevops/forrealdatingapp-frontend',
                                 tagName: "v${env.BUILD_NUMBER}",
-                                uploadAssets: [[filePath: zipFilePath]]
+                                uploadAssets: [
+                                    [filePath: 'release-notes.md'], 
+                                    [filePath: zipFilePath]
+                                ]
                             )
                         } catch (Exception e) {
                             error("🚨 GitHub release failed: ${e.getMessage()}")
