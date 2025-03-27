@@ -78,7 +78,7 @@ pipeline {
                 script {
                     // Reuse the same ZIP file path 
                     
-                    def zipFilePath = '${WORKSPACE}/build/distributions/forrealdatingapp.zip'
+                    
                         
 
                     // Log the file path being used
@@ -103,7 +103,7 @@ pipeline {
                         repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tagName: "v${env.BUILD_NUMBER}",
                         uploadAssets: [
-                            [filePath: zipFilePath]
+                            [filePath: '${WORKSPACE}/build/distributions/forrealdatingapp.zip']
                         ]
                     )
                 }
