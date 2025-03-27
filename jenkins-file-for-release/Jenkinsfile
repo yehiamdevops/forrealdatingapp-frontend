@@ -61,11 +61,9 @@ pipeline {
             }
         }
 
-        stage('Verify File for Upload') {
+     stage('Archive Artifacts') {
         steps {
-            sh 'ls -l ${WORKSPACE}/build/distributions/'
-            sh 'file ${WORKSPACE}/build/distributions/forrealdatingapp.zip'
-            sh 'stat ${WORKSPACE}/build/distributions/forrealdatingapp.zip'
+        archiveArtifacts artifacts: 'build/distributions/forrealdatingapp.zip', fingerprint: true
         }
     }
 
@@ -77,7 +75,14 @@ pipeline {
             steps {
                 script {
                     // Reuse the same ZIP file path 
+                    def zipFilePath = "${env.WORKSPACE}/build/distributions/forrealdatingapp.zip"
                     
+                    // Verify file exists before proceeding
+                    if (!fileExists(zipFilePath)) {
+                        error("File not found: ${zipFilePath}. Cannot create release.")
+                    }
+                    
+                    echo "Creating release with file: ${zipFilePath}"
                     
                         
 
@@ -103,7 +108,7 @@ pipeline {
                         repository: 'yehiamdevops/forrealdatingapp-frontend',
                         tagName: "v${env.BUILD_NUMBER}",
                         uploadAssets: [
-                            [filePath: '${env.WORKSPACE}/build/distributions/forrealdatingapp.zip']
+                            [filePath: zipFilePath]
                         ]
                     )
                 }
