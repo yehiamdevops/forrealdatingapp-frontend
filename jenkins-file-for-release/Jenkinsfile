@@ -88,6 +88,8 @@ pipeline {
                         bodyFile: 'release-notes.md',
                         draft: false
                     )
+                    sh 'ls -l /home/yehiam/jenkins/workspace/front-release-unix/build/distributions/'
+                    sh 'echo test'
 
                     // Upload ZIP asset
                     uploadGithubReleaseAsset(
@@ -106,7 +108,7 @@ pipeline {
                 script {
                         sh 'chmod +x gradlew'
                         sh './gradlew clean' // Use 'sh' for Linux/macOS
-                        sh 'rm -rf .'
+                        
                 
                 }
             }
@@ -122,7 +124,7 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed! 😢'
-            sh 'rm -rf .'
+          
             // Notify the team (e.g., via email, Slack, etc.)
         }
     }
