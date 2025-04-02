@@ -3,7 +3,6 @@ package forrealdatingapp;
 import java.time.LocalDate;
 import java.time.Period;
 
-import org.checkerframework.checker.units.qual.min;
 import org.controlsfx.control.RangeSlider;
 
 import javafx.geometry.Insets;
