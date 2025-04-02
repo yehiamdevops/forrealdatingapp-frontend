@@ -11,7 +11,7 @@ public class CloudinaryUtils {
   
     public static String Upload(File file) {
         try {
-            String CLOUDINARY_URL = App.getEnv("CLOUDINARY_URL", "CLOUDINARY_URL");
+            String CLOUDINARY_URL = System.getenv("CLOUDINARY_URL");
             Cloudinary cloudinary = new Cloudinary(CLOUDINARY_URL);
             Map params = ObjectUtils.asMap(
                     "overwrite", true,

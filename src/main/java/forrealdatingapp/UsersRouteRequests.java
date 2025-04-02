@@ -33,7 +33,7 @@ public class UsersRouteRequests {
      * 
      */
     
-    private static final String HOST = App.getEnv("EXPRESS_HOST", "EXPRESS_HOST");
+    private static final String HOST = System.getenv("EXPRESS_HOST");;
     private static final ObjectMapper om = new ObjectMapper();
     public static final TokenManager tm = new TokenManager();
 

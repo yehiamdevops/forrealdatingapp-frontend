@@ -2,7 +2,6 @@ package forrealdatingapp;
 
 import java.io.IOException;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
@@ -10,7 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class App extends Application{
-    public static final Dotenv env = Dotenv.load();
+    
     static LoginWindow loginWindow = new LoginWindow();
     static MatchesPage matchesPage = new MatchesPage();
     
@@ -51,23 +50,23 @@ public class App extends Application{
 
 
     }
-    public static String getEnv(String key, String defaultValue) {
+    // public static String getEnv(String key, String defaultValue) {
        
-        // Try to get value from dotenv
-        String value = env.get(key);
+    //     // Try to get value from dotenv
+    //     String value = env.get(key);
         
-        // Check if value is null, fallback to system environment
-        if (value == null) {
-            value = System.getenv(key);
-        }
+    //     // Check if value is null, fallback to system environment
+    //     if (value == null) {
+    //         value = System.getenv(key);
+    //     }
         
-        // If still null, return default value
-        if (value == null) {
-            value = defaultValue;
-        }
+    //     // If still null, return default value
+    //     if (value == null) {
+    //         value = defaultValue;
+    //     }
         
-        return value;
-    }
+    //     return value;
+    // }
     
     
     public static void main(String[] args) throws Exception {

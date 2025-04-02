@@ -163,8 +163,8 @@ public class ChatZone {
         }
     
         public static void connectToServer() {
-            String socket_host = App.getEnv("SOCKET_HOST","SOCKET_HOST");
-            int socket_port = Integer.parseInt(App.getEnv("SOCKET_PORT","SOCKET_PORT"));
+            String socket_host = System.getenv("SOCKET_HOST");
+            int socket_port = Integer.parseInt(System.getenv("SOCKET_PORT"));
             try {
                 if (socket == null ||socket.isClosed()) {
                     
