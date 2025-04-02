@@ -40,7 +40,7 @@ public class UsersRouteRequests {
 
         // Create a HttpRequest (GET request)
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(HOST + "/users/myProfile"))
+                .uri(URI.create(HOST + "users/myProfile"))
                 .header("x-api-key", tm.getToken(_id)) // Example URL
                 .build();
 
@@ -64,7 +64,7 @@ public class UsersRouteRequests {
 
         // Create a HttpRequest (GET request)
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(HOST + "/users"))
+                .uri(URI.create(HOST + "users"))
                 .header("x-api-key", "example")
                 .build();
 
@@ -97,7 +97,7 @@ public class UsersRouteRequests {
     }
     System.out.println(queryParams);
     // Create the full URL
-    String url = HOST + "/users/queryget" + queryParams;
+    String url = HOST + "users/queryget" + queryParams;
 
     // Create HttpClient
     HttpClient client = HttpClient.newHttpClient();
@@ -129,7 +129,7 @@ public class UsersRouteRequests {
             HttpClient client = HttpClient.newHttpClient();
             // Build the HttpRequest
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(HOST + "/users/signup"))
+                    .uri(URI.create(HOST + "users/signup"))
                     .POST(HttpRequest.BodyPublishers.ofString(json)) // Send JSON as body
                     .header("Content-Type", "application/json") // Set header
                     .build();
@@ -155,7 +155,7 @@ public class UsersRouteRequests {
             HttpClient client = HttpClient.newHttpClient();
 
             // System.out.println(jsonPath.toAbsolutePath());
-            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "/users/login"))
+            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "users/login"))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(json)).build();
             HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -171,7 +171,7 @@ public class UsersRouteRequests {
 
     public static boolean verifyOtpRequest(String email, String otp) {
         try {
-            URI uri = new URI(HOST + "/otp/verify-otp");
+            URI uri = new URI(HOST + "otp/verify-otp");
             URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -239,7 +239,7 @@ public class UsersRouteRequests {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/updateprofile/" + _id))
+            .uri(URI.create(HOST + "users/updateprofile/" + _id))
             .header("Content-Type", "application/json")
             .header("x-api-key",tm.getToken(_id))
             .PUT(HttpRequest.BodyPublishers.ofString(json)).build(); //PUT request
@@ -256,7 +256,7 @@ public class UsersRouteRequests {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/addpicture/" + _id))
+            .uri(URI.create(HOST + "users/addpicture/" + _id))
             .header("Content-Type", "application/json")
             .header("x-api-key",tm.getToken(_id))
             .PUT(HttpRequest.BodyPublishers.ofString(json))
@@ -275,7 +275,7 @@ public class UsersRouteRequests {
         HttpClient client = HttpClient.newHttpClient();
         // System.out.println(jsonPath.toAbsolutePath());
         HttpRequest req = HttpRequest.newBuilder()
-        .uri(URI.create(HOST + "/users/dislike"))
+        .uri(URI.create(HOST + "users/dislike"))
         .header("Content-Type", "application/json")
         .header("x-api-key",tm.getToken(_id))
         .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -294,7 +294,7 @@ public class UsersRouteRequests {
             HttpClient client = HttpClient.newHttpClient();
             // System.out.println(jsonPath.toAbsolutePath());
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/checkmatch"))
+            .uri(URI.create(HOST + "users/checkmatch"))
             .header("Content-Type", "application/json")
             .header("x-api-key",tm.getToken(_id))
             .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -313,7 +313,7 @@ public class UsersRouteRequests {
             HttpClient client = HttpClient.newHttpClient();
             // System.out.println(jsonPath.toAbsolutePath());
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/like"))
+            .uri(URI.create(HOST + "users/like"))
             .header("Content-Type", "application/json")
             .header("x-api-key",tm.getToken(_id))
             .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -343,7 +343,7 @@ public class UsersRouteRequests {
                     HttpClient client = HttpClient.newHttpClient();
                     // Build the GET request
                     HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(HOST + "/users/getmatches" + queryParams))
+                    .uri(URI.create(HOST + "users/getmatches" + queryParams))
                     .header("x-api-key", tm.getToken(_id)) // Target URL
                     .GET() // GET method
                     .build();
@@ -367,7 +367,7 @@ public class UsersRouteRequests {
                 String reqBody = om.writeValueAsString(reqBodyMap);
                 HttpClient client = HttpClient.newHttpClient();
                 // System.out.println(jsonPath.toAbsolutePath());
-                HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "/users/unmatch"))
+                HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "users/unmatch"))
                 .header("Content-Type", "application/json")
                 .header("x-api-key",tm.getToken(_id))
                 .POST(HttpRequest.BodyPublishers.ofString(reqBody)).build();
@@ -391,7 +391,7 @@ public class UsersRouteRequests {
                     HttpClient client = HttpClient.newHttpClient();
                     HttpRequest req = HttpRequest.newBuilder()
                     // other route take this route as a param
-                    .uri(URI.create(HOST + "/users/changeprofilepic"))
+                    .uri(URI.create(HOST + "users/changeprofilepic"))
                     .header("Content-Type", "application/json")
                     .header("x-api-key",tm.getToken(_id))
                     .PUT(HttpRequest.BodyPublishers.ofString(json))
@@ -411,7 +411,7 @@ public class UsersRouteRequests {
                     HttpClient client = HttpClient.newHttpClient();
                     // System.out.println(jsonPath.toAbsolutePath());
                     HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(HOST + "/users/getMatchedProfile"))
+                    .uri(URI.create(HOST + "users/getMatchedProfile"))
                     .header("Content-Type", "application/json")
                     .header("x-api-key", tm.getToken(_id))
                     .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -435,7 +435,7 @@ public static List<Map<String, Object>> FetchMessages(String userId, String matc
                 HttpClient client = HttpClient.newHttpClient();
                 // System.out.println(jsonPath.toAbsolutePath());
                 HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(HOST + "/users/fetchmessages"))
+                .uri(URI.create(HOST + "users/fetchmessages"))
                 .header("Content-Type", "application/json")
                 .header("x-api-key", tm.getToken(userId))
                 .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -456,7 +456,7 @@ public static String Resetusrpass(String passwordString, String email) {
         String json = om.writeValueAsString(jsonMap);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest req = HttpRequest.newBuilder()
-        .uri(URI.create(HOST + "/users/resetpassword" ))
+        .uri(URI.create(HOST + "users/resetpassword" ))
         .header("Content-Type", "application/json")
         .PUT(HttpRequest.BodyPublishers.ofString(json))
         .build(); //PUT request
@@ -484,7 +484,7 @@ public static String Resetusrpass(String passwordString, String email) {
                     HttpClient client = HttpClient.newHttpClient();
                     // Build the GET request
                     HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(HOST + "/users/latest-messages")) // Target URL
+                    .uri(URI.create(HOST + "users/latest-messages")) // Target URL
                     .header("x-api-key", tm.getToken(userId))
                     .GET() // GET method
                     .build();
@@ -505,7 +505,7 @@ public static String Resetusrpass(String passwordString, String email) {
             String json = om.writeValueAsString(ChatZone.messageCounters);
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/update-counter"))
+            .uri(URI.create(HOST + "users/update-counter"))
             .header("Content-Type", "application/json")
             .header("x-api-key", tm.getToken(id))
             .PUT(HttpRequest.BodyPublishers.ofString(json))
@@ -525,7 +525,7 @@ public static String Resetusrpass(String passwordString, String email) {
             HttpClient client = HttpClient.newHttpClient();
             // Build the GET request
             HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/unreadmessages")) // Target URL
+            .uri(URI.create(HOST + "users/unreadmessages")) // Target URL
             .header("x-api-key", tm.getToken(id))
             .GET() // GET method
             .build();
@@ -550,7 +550,7 @@ public static String Resetusrpass(String passwordString, String email) {
            
 
             HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/resetCounter/" + matchId)) // URL with query params
+            .uri(URI.create(HOST + "users/resetCounter/" + matchId)) // URL with query params
             .method("PATCH", HttpRequest.BodyPublishers.noBody()) // No request body
             .header("x-api-key", tm.getToken(id))
             .build();
@@ -575,7 +575,7 @@ public static String Resetusrpass(String passwordString, String email) {
            
 
             HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/users/updatePreferrences")) // URL with query params
+            .uri(URI.create(HOST + "users/updatePreferrences")) // URL with query params
             .method("PATCH", HttpRequest.BodyPublishers.ofString(json)) 
             .header("Content-Type", "application/json")
             .header("x-api-key", tm.getToken(id))
