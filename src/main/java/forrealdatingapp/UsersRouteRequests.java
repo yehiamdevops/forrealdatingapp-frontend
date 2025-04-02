@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -85,21 +86,18 @@ public class UsersRouteRequests {
 
     }
 
-    static Queue<User> getUsers(String _id,String page, String minAge, String maxAge) {
+    static Queue<User> getUsers(String _id,String page) {
     // Start building the query string
     StringBuilder queryParams = new StringBuilder("?");
     
-    if (page != null) queryParams.append("page=").append(URLEncoder.encode(page, StandardCharsets.UTF_8)).append("&");
-    if (minAge != null) queryParams.append("minAge=").append(URLEncoder.encode(minAge, StandardCharsets.UTF_8)).append("&");
-    if (maxAge != null) queryParams.append("maxAge=").append(URLEncoder.encode(maxAge, StandardCharsets.UTF_8)).append("&");
+    if (page != null) queryParams.append("page=").append(URLEncoder.encode(page, StandardCharsets.UTF_8));
+    
 
     // Remove trailing "&" if exists
-    if (queryParams.length() > 1) {
-        queryParams.setLength(queryParams.length() - 1);
-    } else {
+    if (queryParams.length() < 1) {
         queryParams.setLength(0); // No params provided, avoid sending "?"
     }
-
+    System.out.println(queryParams);
     // Create the full URL
     String url = HOST + "/users/queryget" + queryParams;
 
@@ -356,8 +354,8 @@ public class UsersRouteRequests {
                     // Send the request and handle the response
                     HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
                     // Print response details
-                    System.out.println("Response code: " + response.statusCode());
-                    System.out.println("Response body: " + response.body());
+                    // System.out.println("Response code: " + response.statusCode());
+                    // System.out.println("Response body: " + response.body());
                     return om.readValue(response.body(), new TypeReference<List<User>>(){});
                     } catch (IOException | InterruptedException e) {
                         System.out.println(e.getLocalizedMessage());
@@ -483,9 +481,124 @@ public static String Resetusrpass(String passwordString, String email) {
 
     
 }
+
+    public static List<Message> getLastMessages(String userId) {
+        try {
+                    // Create HttpClient
+                    HttpClient client = HttpClient.newHttpClient();
+                    // Build the GET request
+                    HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(HOST + "/users/latest-messages")) // Target URL
+                    .header("x-api-key", tm.getToken(userId))
+                    .GET() // GET method
+                    .build();
+                    // Send the request and handle the response
+                    HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+                    // Print response details
+                    // System.out.println("Response code: " + response.statusCode());
+                    // System.out.println("Response body getLastMessages: " + response.body());
+                    return om.readValue(response.body(), new TypeReference<List<Message>>(){});
+                    } catch (IOException | InterruptedException e) {
+                        System.out.println(e.getLocalizedMessage());
+                        return null;
+                    }
+
+    }
+    public static void UpdateCounter(String id){
+        try {
+            String json = om.writeValueAsString(ChatZone.messageCounters);
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(HOST + "/users/update-counter"))
+            .header("Content-Type", "application/json")
+            .header("x-api-key", tm.getToken(id))
+            .PUT(HttpRequest.BodyPublishers.ofString(json))
+            .build(); //PUT request
+            HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+            System.out.println("Response code: " + response.statusCode());
+            System.out.println("Response body: " + response.body());
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+        
+    }
+
+    public static List<UnreadCounter> ShowUnreadMessages(String id) {
+        try {
+            // Create HttpClient
+            HttpClient client = HttpClient.newHttpClient();
+            // Build the GET request
+            HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(HOST + "/users/unreadmessages")) // Target URL
+            .header("x-api-key", tm.getToken(id))
+            .GET() // GET method
+            .build();
+            // Send the request and handle the response
+            HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+            // Print response details
+            // System.out.println("Response code: " + response.statusCode());
+            // System.out.println("Response body: " + response.body());
+            return om.readValue(response.body(), new TypeReference<List<UnreadCounter>>() {});
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getLocalizedMessage());
+            return null; 
+        }
+        
+    }
+
+    public static void ResetMessageCounter(String id, String matchId) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // Add query parameters to the URL
+           
+
+            HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(HOST + "/users/resetCounter/" + matchId)) // URL with query params
+            .method("PATCH", HttpRequest.BodyPublishers.noBody()) // No request body
+            .header("x-api-key", tm.getToken(id))
+            .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            System.out.println("Response Code: " + response.statusCode());
+            System.out.println("Response Body: " + response.body());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+
+    static void UpdatePreferrences(User user,String id) {
+        try {
+            String json = om.writeValueAsString(user);
+            System.out.println(json);
+            HttpClient client = HttpClient.newHttpClient();
+
+            // Add query parameters to the URL
+           
+
+            HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(HOST + "/users/updatePreferrences")) // URL with query params
+            .method("PATCH", HttpRequest.BodyPublishers.ofString(json)) 
+            .header("Content-Type", "application/json")
+            .header("x-api-key", tm.getToken(id))
+            .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            System.out.println("Response Code: " + response.statusCode());
+            System.out.println("Response Body: " + response.body());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+    
+
+
+
 }
-
-
 // public static String getJson(){
 //     String jsonContent;
 //     try{
@@ -498,6 +611,28 @@ public static String Resetusrpass(String passwordString, String email) {
 //     }
 //     return jsonContent;
 // }
+// PATCH example
+// try {
+//     HttpClient client = HttpClient.newHttpClient();
+
+//     // Add query parameters to the URL
+   
+
+//     HttpRequest request = HttpRequest.newBuilder()
+//     .uri(URI.create(HOST + "/users/updatePreferrences")) // URL with query params
+//     .method("PATCH", HttpRequest.BodyPublishers.ofString(json)) 
+//     .header("x-api-key", tm.getToken(id))
+//     .header("Content-Type", "application/json")
+//     .build();
+
+//     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+//     System.out.println("Response Code: " + response.statusCode());
+//     System.out.println("Response Body: " + response.body());
+// } catch (Exception e) {
+//     e.printStackTrace();
+// }
+
 // PUT example
 // public static void Put(String _id) {
 //     try {

@@ -53,8 +53,8 @@ public class ProfilePage {
     private final Label notificationLabel = new Label();
     private final PauseTransition notificationTimeout = new PauseTransition(Duration.seconds(3));
     private String _id;
-    public void showProfilePage(Stage stage, String _id) throws URISyntaxException {
-        user = UsersRouteRequests.getMyProfile(_id);
+    public void showProfilePage(Stage stage, String _id, User currentUser) throws URISyntaxException {
+        user = currentUser;
         this._id = _id;
         // Initialize example data
         name.set(user.getFirstName());

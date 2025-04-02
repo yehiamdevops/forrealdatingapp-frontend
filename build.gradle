@@ -151,5 +151,6 @@ implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
 implementation 'com.fasterxml.jackson.core:jackson-core:2.18.3'
 implementation 'com.cloudinary:cloudinary-http5:2.2.0'
 implementation 'com.cloudinary:cloudinary-core:2.2.0'
+implementation 'org.controlsfx:controlsfx:11.1.2'
 }
 

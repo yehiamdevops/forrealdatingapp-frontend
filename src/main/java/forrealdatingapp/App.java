@@ -10,7 +10,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class App extends Application{
-    
+    public static final Dotenv env = Dotenv.load();
     static LoginWindow loginWindow = new LoginWindow();
     static MatchesPage matchesPage = new MatchesPage();
     
@@ -24,9 +24,17 @@ public class App extends Application{
     }
     @Override
     public void stop() {
+        // if(ChatZone.messageCounters != null && !ChatZone.messageCounters.isEmpty()){
+        //     if(token_id != null){
+        //         UsersRouteRequests.UpdateCounter(token_id);
+                
+        //     }
+        // }
         TokenManager tokenManager = new TokenManager();
-        if (token_id != null && !isTokenOnline)
+        if (token_id != null && !isTokenOnline){
             tokenManager.clearToken(token_id);  // Clear the token when the app stops
+
+        }
         ChatZone.closeConnection();
         Platform.exit();  // Exit the JavaFX application
     }
@@ -44,26 +52,19 @@ public class App extends Application{
 
     }
     public static String getEnv(String key, String defaultValue) {
-        String value = "";
-        try {
-            Dotenv env = Dotenv.load();
-            value = env.get(key);
-            
-        } catch (Exception e) {
-            value = System.getenv(key);
-         }
+       
         // Try to get value from dotenv
+        String value = env.get(key);
         
         // Check if value is null, fallback to system environment
-        if (value.isEmpty()) {
+        if (value == null) {
             value = System.getenv(key);
         }
         
         // If still null, return default value
-        if (value.isEmpty()) {
+        if (value == null) {
             value = defaultValue;
         }
-        System.out.println(value);
         
         return value;
     }

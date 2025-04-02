@@ -3,6 +3,8 @@ package forrealdatingapp;
 import java.time.LocalDate;
 import java.time.Period;
 
+import org.controlsfx.control.RangeSlider;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -51,6 +53,38 @@ public class PrefrencesWindow {
         preferOtherButton.setToggleGroup(preferenceGroup);
 
         HBox preferenceBox = new HBox(10, preferMaleButton, preferFemaleButton, preferOtherButton);
+        
+        // Age Range Slider 
+        RangeSlider ageSlider = new RangeSlider(18, 99, 18, 65);
+        
+        // Fine-tuned settings for precise age selection
+        ageSlider.setShowTickMarks(true);
+        ageSlider.setShowTickLabels(true);
+        ageSlider.setMajorTickUnit(10);  // Label every 10 years
+        ageSlider.setMinorTickCount(9);  // 9 minor ticks between majors (shows every year)
+        ageSlider.setSnapToTicks(true);  // Snap to exact integer values
+        ageSlider.setBlockIncrement(1);  // Move by 1 year with keyboard
+        
+        // Display current values with exact numbers
+        Label rangeLabel = new Label();
+        updateLabel(rangeLabel, ageSlider);
+        
+        // Update label when values change
+        ageSlider.lowValueProperty().addListener((obs, oldVal, newVal) -> {
+            updateLabel(rangeLabel, ageSlider);
+        });
+        
+        ageSlider.highValueProperty().addListener((obs, oldVal, newVal) -> {
+            updateLabel(rangeLabel, ageSlider);
+        });
+        
+        VBox slider = new VBox(10, 
+            new Label("Select Exact Age Range:"),
+            rangeLabel,
+            ageSlider
+        );
+
+
 
         // Bio
         Label bioLabel = new Label("Bio:");
@@ -77,6 +111,11 @@ public class PrefrencesWindow {
                 user.setGender(((RadioButton) genderGroup.getSelectedToggle()).getText());
                 user.setPreferredGender(((RadioButton) preferenceGroup.getSelectedToggle()).getText());
                 user.setBio(bioTextArea.getText());
+                user.setMinPreferredAge((int)ageSlider.getLowValue());
+                user.setMaxPreferredAge((int)ageSlider.getHighValue());
+
+                
+
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "Preferences saved successfully!", ButtonType.OK);
                 alert.showAndWait();
@@ -91,6 +130,7 @@ public class PrefrencesWindow {
                 birthDateLabel, birthDatePicker,
                 genderLabel, genderBox,
                 preferenceLabel, preferenceBox,
+                slider,
                 bioLabel, bioTextArea,
                 submitButton
         );
@@ -109,5 +149,11 @@ public class PrefrencesWindow {
         }
         LocalDate today = LocalDate.now();
         return Period.between(birthDate, today).getYears();
+    }
+        
+    private void updateLabel(Label label, RangeSlider slider) {
+        label.setText(String.format("Age Range: %d to %d years", 
+            (int)slider.getLowValue(), 
+            (int)slider.getHighValue()));
     }
 }

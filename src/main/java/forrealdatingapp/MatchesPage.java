@@ -31,16 +31,16 @@ public class MatchesPage {
     private static ChatZone chatZone;
     private static ListView<HBox> matchesListView;
     private static Map<String, HBox> matchBoxMap = new HashMap<>();
-    private static Map<String, Label> statusMap = new HashMap<>();
+    public static Map<String, Label> statusMap = new HashMap<>();
     public static Map<String, Label> lastMessageMap = new HashMap<>();
     public static Map<String, Label> MessageCounterMap = new HashMap<>();
     private static Label statusLabel;
     
-    private static String paginationType = "";
     
 
 
     void showMatchesPage(Stage stage,String _id) throws IOException {
+    
         // Create a back button to return to the main page
         Button backToProfileButton = new Button("Back to Main Screen");
         backToProfileButton.setOnAction((actionEvent) -> {
@@ -74,16 +74,73 @@ public class MatchesPage {
             
                     
                 }
+                ChatZone.writer.println("Broadcast|" + _id);
+                List<Message> lastMessages =  UsersRouteRequests.getLastMessages(_id);
+                List<Message> filteredMessages = lastMessages.stream()
+                .filter(e -> matches.stream()
+                        .anyMatch(match -> e.getRecieverID().equals(match.getId()) || e.getSenderID().equals(match.getId())))
+                .toList();
+                System.out.println(filteredMessages);
+            
+        
+                for(Message msg : filteredMessages){
+                    System.out.println(msg.getMessage());
+                    String SenderID = msg.getSenderID();
+                    String recieverID = msg.getRecieverID();
+                    System.out.println("sender - id v");
+                    System.out.println(SenderID);
+                    
+                    if (SenderID.equals(_id)) {
+                        if(lastMessageMap.get(recieverID) != null){
+                            lastMessageMap.get(recieverID).setText("me: " + msg.getMessage());
+                        }
+                        matchesListView.getItems().remove(matchBoxMap.get(recieverID));
+                        matchesListView.getItems().add(0, matchBoxMap.get(recieverID));
+                     }
+                    else{
+                        if(lastMessageMap.get(SenderID) != null){
+                            lastMessageMap.get(SenderID).setText(msg.getSenderUsername() + ": " + msg.getMessage());
+                        }    
+                        matchesListView.getItems().remove(matchBoxMap.get(SenderID));
+                        matchesListView.getItems().add(0, matchBoxMap.get(SenderID));
+
+
+        
+                    }
+                } 
+                List<UnreadCounter> unreadCounters = UsersRouteRequests.ShowUnreadMessages(_id);
+                List<UnreadCounter> filteredCounters = unreadCounters.stream()
+                .filter(e -> matches.stream()
+                .anyMatch(match -> e.getMatched_user_id().equals(match.getId()))).toList();
+                for(UnreadCounter e : filteredCounters){
+                    if (e.getMessageCounter() > 0) 
+                    {
+                        MessageCounterMap.get(e.getMatched_user_id()).setText("you have " + e.getMessageCounter() + " messages unread");
+                        ChatZone.messageCounters.put(e.getMatched_user_id(), e.getMessageCounter());
+                        matchesListView.getItems().remove(matchBoxMap.get(e.getMatched_user_id()));
+                        matchesListView.getItems().add(0, matchBoxMap.get(e.getMatched_user_id()));
+                        
+                        
+                    }
+                }
+
             }
             else{
-                paginationType = "";
                 pagination.setCurrentPageIndex(pageIndex);
                 return new Label("no more matches!!!");
             }
-        
+  
+            
             return matchesListView;
 
         });
+        if (ChatZone.messageCounters != null) {
+            System.out.println("test");
+            System.out.println(ChatZone.messageCounters);
+        }
+        
+
+
         ScrollPane sp = new ScrollPane();
         sp.setContent(matchesListView);
         // Main layout
@@ -98,11 +155,32 @@ public class MatchesPage {
         stage.setTitle("Matches");
         stage.show();
         ChatZone.writer.println("Broadcast|" + _id);
+        // List<Message> lastMessages =  UsersRouteRequests.getLastMessages(_id);
+        // for(Message msg : lastMessages){
+        //     String SenderID = msg.getSenderID();
+        //     String recieverID = msg.getRecieverID();
+        //     System.out.println("sender - id v");
+        //     System.out.println(SenderID);
+            
+        //     if (SenderID.equals(_id)) {
+        //         if(lastMessageMap.get(recieverID) != null)
+        //             lastMessageMap.get(recieverID).setText("me: " + msg.getMessage());
+        //      }
+        //     else{
+        //         if(lastMessageMap.get(SenderID) != null)    
+        //             lastMessageMap.get(SenderID).setText(msg.getSenderUsername() + ": " + msg.getMessage());
+
+        //     }
+        // } 
+      
+        
+   
 
     }
 
     // Helper method to create a match box (HBox) for each match
 private HBox createMatchBox(Match match,Stage stage,String _id) throws IOException, URISyntaxException {
+    // System.out.println("match box entry");
     // Create an ImageView for the profile picture
     if(!statusMap.containsKey(match.getId())){
         statusLabel = new Label();
@@ -133,10 +211,12 @@ private HBox createMatchBox(Match match,Stage stage,String _id) throws IOExcepti
 
     // Last message
     Label lastMessageLabel = new Label();
-    if (!lastMessageMap.containsKey(match.getId())) {
+    // System.out.println("matchboxtest:"+lastMessageMap);
+    // System.out.println("check1:"+lastMessageMap.get(match.getId()) == null);
+    if (lastMessageMap.get(match.getId()) == null) {
 
         lastMessageMap.put(match.getId(), lastMessageLabel);
-        
+        // System.out.println("check2:"+lastMessageMap);
     }
     lastMessageLabel.setFont(Font.font(14));
     lastMessageLabel.setTextFill(Color.GRAY);
@@ -206,6 +286,7 @@ messageCounter.setTextFill(Color.BLUE);
         
         
     });
+    matchBoxMap.put(match.getId(), matchBox);
     return matchBox;
 }
 
@@ -261,7 +342,7 @@ messageCounter.setTextFill(Color.BLUE);
         }
     }
     static void cleanCurrentUnmatch(String id){
-        // System.out.println("cleanCurrentUnmatch" + matchBoxMap.get(id));
+        System.out.println("cleanCurrentUnmatch" + matchBoxMap.get(id));
         Platform.runLater(()->{
             matchesListView.getItems().remove(matchBoxMap.get(id));
         });
@@ -270,26 +351,28 @@ messageCounter.setTextFill(Color.BLUE);
         // System.out.println(statusMap);
         // System.out.println(id);
         if(statusMap != null && !statusMap.isEmpty()){
+            if(statusMap.containsKey(id)){
 
-            if(Type.equals("online")){
-                Platform.runLater(()->{
-                    statusMap.get(id).setText("online");
-                    statusMap.get(id).setTextFill(Color.GREEN);
-                });
-    
-                
-                
-    
-            }
-            else{
-                Platform.runLater(()->{
-                    statusMap.get(id).setText("offline");
-                    statusMap.get(id).setTextFill(Color.RED);
-                });
-    
-                
-    
-                
+                if(Type.equals("online")){
+                    Platform.runLater(()->{
+                        statusMap.get(id).setText("online");
+                        statusMap.get(id).setTextFill(Color.GREEN);
+                    });
+        
+                    
+                    
+        
+                }
+                else{
+                    Platform.runLater(()->{
+                        statusMap.get(id).setText("offline");
+                        statusMap.get(id).setTextFill(Color.RED);
+                    });
+        
+                    
+        
+                    
+                }
             }
         }
         else{
@@ -314,6 +397,16 @@ messageCounter.setTextFill(Color.BLUE);
             });
             
         }
+
+    }
+    public static void pushUserMsgToTop(String id){
+        Platform.runLater(()->{
+            if (matchBoxMap.get(id) != null){
+
+                matchesListView.getItems().remove(matchBoxMap.get(id));
+                matchesListView.getItems().add(0, matchBoxMap.get(id));
+            }
+        });
 
     }
 }

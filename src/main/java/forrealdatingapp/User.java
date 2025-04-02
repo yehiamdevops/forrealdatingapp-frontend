@@ -13,6 +13,8 @@ public class User {
     private String firstName;
     private String lastName;
     private int age;
+    private int minPreferredAge;
+    private int maxPreferredAge;
     private String email;
     private String username;
     private List<String> pictures;
@@ -22,6 +24,20 @@ public class User {
     private String preferredGender;
     private String bio;
     private String password;
+    public int getMinPreferredAge() {
+        return minPreferredAge;
+    }
+    public void setMinPreferredAge(int minPreferredAge) {
+        this.minPreferredAge = minPreferredAge;
+    }
+    public int getMaxPreferredAge() {
+        return maxPreferredAge;
+    }
+    public void setMaxPreferredAge(int maxPreferredAge) {
+        this.maxPreferredAge = maxPreferredAge;
+    }
+
+
     public String getPassword() {
         return password;
     }

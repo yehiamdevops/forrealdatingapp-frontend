@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -51,6 +52,7 @@ public class ChatZone {
                                 
                                     
         public void showChatZone(Stage stage, MatchesPage.Match match, String _userId) {
+            
             messageCounters.put(matchId, 0);
             matchId = match.getId();
             userId = _userId;
@@ -63,28 +65,28 @@ public class ChatZone {
             chatArea.setWrapText(true);
             
             if(isMessagesFetched.get(matchId) == null){
-            // System.out.println(userId);
-            // System.out.println(matchId);
-            List<Map<String, Object>> messages = UsersRouteRequests.FetchMessages(userId, matchId);
-            if(messages != null){
-                User currentUser = UsersRouteRequests.getMyProfile(_userId);
-                StringBuilder chatContent = new StringBuilder();
-                String sender;
-                for (Map<String, Object> message : messages) {
-                    String content = (String)message.get("senderUsername");
-                    if(content.equals(currentUser.getUsername())){
-                        sender = "Me";
+                // System.out.println(userId);
+                // System.out.println(matchId);
+                List<Map<String, Object>> messages = UsersRouteRequests.FetchMessages(userId, matchId);
+                if(messages != null){
+                    User currentUser = UsersRouteRequests.getMyProfile(_userId);
+                    StringBuilder chatContent = new StringBuilder();
+                    String sender;
+                    for (Map<String, Object> message : messages) {
+                        String content = (String)message.get("senderUsername");
+                        if(content.equals(currentUser.getUsername())){
+                            sender = "Me";
+                        }
+                        else{
+                            sender = content;
+                        }
+        
+                        chatContent.append(sender).append("|").append((String)message.get("message")).append("\n");
                     }
-                    else{
-                        sender = content;
-                    }
-    
-                    chatContent.append(sender).append("|").append((String)message.get("message")).append("\n");
+                    chatArea.setText(chatContent.toString());
+                    isMessagesFetched.put(matchId, true);
+        
                 }
-                chatArea.setText(chatContent.toString());
-                isMessagesFetched.put(matchId, true);
-    
-            }
             
     
     
@@ -124,6 +126,7 @@ public class ChatZone {
     
             Button backToMainScreen = new Button("back to main screen");
             backToMainScreen.setOnAction((actionEvent) -> {
+                UsersRouteRequests.ResetMessageCounter(_userId, match.getId());
                 MessagesMap.put(matchId, chatArea);
                 inChatZoneScreen = false;
                 messageCounters.put(matchId, 0);
@@ -133,10 +136,13 @@ public class ChatZone {
     
                 
             });
+            Label whoamichattingwith = new Label("you are now chatting with " + match.getName());
+            HBox Top = new HBox(10);
+            Top.getChildren().addAll(backToMainScreen,whoamichattingwith, MatchesPage.statusMap.get(matchId));
             BorderPane layout = new BorderPane();
             layout.setCenter(chatArea);
             layout.setBottom(inputBox);
-            layout.setTop(backToMainScreen);
+            layout.setTop(Top);
             Scene scene = new Scene(layout, 400, 500);
             scene.setOnKeyPressed ((keyEvent) -> {
                 if(keyEvent.getCode() == KeyCode.ENTER){
@@ -220,8 +226,10 @@ public class ChatZone {
     
                         });
                         System.out.println("inChatZoneScreen:"+inChatZoneScreen);
-                        if(!inChatZoneScreen)
+                        if(!inChatZoneScreen){
                             messageCounters.put(usernameID, messageCounters.getOrDefault(usernameID, 0) + 1);
+                            MatchesPage.pushUserMsgToTop(usernameID);
+                        }
                         else messageCounters.remove(usernameID);
                         MatchesPage.showLastMessage(usernameID, content,username);
                         // if(messageCounters.get(usernameID) == null){

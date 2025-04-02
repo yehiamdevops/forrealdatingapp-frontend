@@ -26,12 +26,16 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class MainPage {
+private static User user;
 private static final ObjectMapper om = new ObjectMapper();
 private static int Count = 0;
+private static int page;
 private static boolean  UsersDetectad;
-private  static User next;
+private static User next;
 private static Queue<User> users;
     void showMainPage(Stage stage, String _id) {
+        page = 1;
+        user = UsersRouteRequests.getMyProfile(_id);
         if (ChatZone.chatArea == null){
                 ChatZone.chatArea = new TextArea();
                 ChatZone.chatArea.setEditable(false);
@@ -43,7 +47,7 @@ private static Queue<User> users;
         UsersDetectad = true;
         // Label for text
        
-        users = UsersRouteRequests.getUsers(_id,null, null, null);
+        users = UsersRouteRequests.getUsers(_id, Integer.toString(page) );
         System.out.println(users);
         
         
@@ -142,6 +146,11 @@ private static Queue<User> users;
                 users.poll();
                 DisplayUser(name, age, bio, users, imageView);
             }
+            else{
+                users = UsersRouteRequests.getUsers(_id, Integer.toString(++page));
+                DisplayUser(name, age, bio, users, imageView);
+
+            }
             
         });
         likeButton.setOnAction(e->{
@@ -168,6 +177,11 @@ private static Queue<User> users;
                 users.poll();
                 DisplayUser(name, age, bio, users, imageView);
             }
+            else{
+                users = UsersRouteRequests.getUsers(_id, Integer.toString(++page));
+                DisplayUser(name, age, bio, users, imageView);
+
+            }
         });
      
   
@@ -180,16 +194,18 @@ private static Queue<User> users;
 
         // Navigation buttons (Profile, Matches, Messages)
         HBox navBar = new HBox(30);
-        Button profileButton = new Button("Profile");
+        Button profileButton = new Button(user.getUsername()+"\'s Profile");
         Button matchesButton = new Button("Matches");
+        Button preferrences = new Button("preferrences");
         
         styleOtherButtons(profileButton);
         styleOtherButtons(matchesButton);
+        styleOtherButtons(preferrences);
        
         profileButton.setOnAction(e -> {
             ProfilePage profilePage = new ProfilePage();
             try {
-                profilePage.showProfilePage(stage, _id);
+                profilePage.showProfilePage(stage, _id, user);
             } catch (URISyntaxException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -203,7 +219,12 @@ private static Queue<User> users;
                 e1.printStackTrace();
             }
         });
-        navBar.getChildren().addAll(profileButton, matchesButton);
+        preferrences.setOnAction((actionEvent) -> {
+            PrefrencesWindowWithToken pwwt = new PrefrencesWindowWithToken();
+            pwwt.showPrefrencesWindow(stage, _id);
+            
+        });
+        navBar.getChildren().addAll(profileButton, matchesButton,preferrences);
         navBar.setAlignment(Pos.CENTER);
         navBar.setSpacing(20);
         navBar.setMinHeight(60);
@@ -216,6 +237,9 @@ private static Queue<User> users;
         logOutButton.setOnAction((actionEvent) -> {
             stage.setWidth(500);
             stage.setHeight(600);
+            // if(ChatZone.messageCounters != null && !ChatZone.messageCounters.isEmpty()){
+            //     UsersRouteRequests.UpdateCounter(_id);
+            // }
             ChatZone.chatArea = null;
             ChatZone.isMessagesFetched.clear();
             LoginWindow loginWindow = new LoginWindow();
@@ -263,6 +287,7 @@ private static Queue<User> users;
                 age.setText(null);
                 bio.setText(null);
                 UsersDetectad = false;
+                page = 1;
             }
     }
     else {
@@ -271,6 +296,7 @@ private static Queue<User> users;
         age.setText(null);
         bio.setText(null);
         UsersDetectad = false;
+        page = 1;
     }
         
     
