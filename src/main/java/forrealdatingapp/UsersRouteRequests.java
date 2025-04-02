@@ -16,11 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.cdimascio.dotenv.Dotenv;
 
 public class UsersRouteRequests {
 
@@ -152,16 +150,14 @@ public class UsersRouteRequests {
     }
 
     public static String PostLogin(String json) {
-        /*write value as string of objectmapper in jackson dependency will help me make a class in java and turn it into a sendable json to a post request */
-        // CompletableFuture<String> completableFuture = new  CompletableFuture<>();
-        // System.out.println(completableFuture.get());
-        // completableFuture.complete("dddd");
-        // System.out.println(completableFuture.get());
+      
         try {
             HttpClient client = HttpClient.newHttpClient();
 
             // System.out.println(jsonPath.toAbsolutePath());
-            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "/users/login")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(json)).build();
+            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(HOST + "/users/login"))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json)).build();
             HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
             // System.out.println("response code: " + response.statusCode());
             // System.out.println("response Body: " + response.body());
@@ -208,7 +204,7 @@ public class UsersRouteRequests {
     public static String sendOtpRequest(String email,String type) {
         try {
             // Initialize ObjectMapper
-
+            
             // Create the HTTP client
             HttpClient client = HttpClient.newHttpClient();
 
@@ -219,7 +215,7 @@ public class UsersRouteRequests {
 
             // Create the POST request
             HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(HOST + "/otp/send-otp"))
+            .uri(URI.create(HOST + "otp/send-otp"))
             .header("Content-Type", "application/json") // Set headers
             .POST(HttpRequest.BodyPublishers.ofString(requestBody)) // Set the request body
             .build();
